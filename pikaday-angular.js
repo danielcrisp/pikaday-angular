@@ -72,6 +72,7 @@
             case "showWeekNumber":
             case "isRTL":
             case "showMonthAfterYear":
+            case "showMonthInTitle":
             case "firstDay":
             case "yearRange":
             case "numberOfMonths":
