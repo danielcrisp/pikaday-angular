@@ -73,6 +73,7 @@
             case "isRTL":
             case "showMonthAfterYear":
             case "showMonthInTitle":
+            case "showOverrunDays":
             case "firstDay":
             case "yearRange":
             case "numberOfMonths":
