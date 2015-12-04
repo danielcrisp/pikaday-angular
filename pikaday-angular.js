@@ -1,148 +1,195 @@
-(function (root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define(['angular', 'pikaday'], factory);
-  } else if (typeof exports === 'object') {
-    // Node. Does not work with strict CommonJS, but
-    // only CommonJS-like environments that support module.exports, like Node.
-    module.exports = factory(require('angular'), require('pikaday'));
-  } else {
-    // Browser globals (root is window)
-    root.returnExports = factory(root.angular, root.Pikaday);
-  }
-}(this, function (angular, Pikaday) {
+(function(root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['angular', 'pikaday'], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports, like Node.
+        module.exports = factory(require('angular'), require('pikaday'));
+    } else {
+        // Browser globals (root is window)
+        root.returnExports = factory(root.angular, root.Pikaday);
+    }
+}(this, function(angular, Pikaday) {
 
-  angular.module('pikaday', [])
-    .provider('pikadayConfig', function pikadayProviderFn() {
+    angular.module('pikaday', [])
+        .provider('pikadayConfig', function pikadayProviderFn() {
 
-      // Create provider with getter and setter methods, allows setting of global configs
+            // Create provider with getter and setter methods, allows setting of global configs
 
-      var config = {};
+            var config = {};
 
-      this.$get = function() {
-        return config;
-      };
+            this.$get = function() {
+                return config;
+            };
 
-      this.setConfig = function setConfig(configs) {
-        config = configs;
-      };
-    })
-    .directive('pikaday', ['pikadayConfig', pikadayDirectiveFn]);
+            this.setConfig = function setConfig(configs) {
+                config = configs;
+            };
+        })
+        .directive('pikaday', ['pikadayConfig', pikadayDirectiveFn]);
 
-  function pikadayDirectiveFn(pikadayConfig) {
+    function pikadayDirectiveFn(pikadayConfig) {
 
-    return {
+        return {
 
-      restrict: 'A',
-      scope: {
-        pikaday: '=', onSelect: '&', onOpen: '&', onClose: '&', onDraw: '&', disableDayFn: '&'
-      },
-      link: function (scope, elem, attrs) {
+            restrict: 'A',
+            scope: {
+                pikaday: '=',
+                onSelect: '&',
+                onOpen: '&',
+                onClose: '&',
+                onDraw: '&',
+                disableDayFn: '&'
+            },
+            link: function(scope, elem, attrs) {
 
-        // Init config Object
+                var picker;
+                // Init config Object
 
-        var config = { field: elem[0], onSelect: function () {
-          setTimeout(function(){
-            scope.$apply();
-          });
-        }};
+                var config = {
+                    field: elem[0],
+                    onSelect: function() {
+                        setTimeout(function() {
+                            scope.$apply();
+                        });
+                    }
+                };
 
-        // Decorate config with globals
+                // Decorate config with globals
 
-        angular.forEach(pikadayConfig, function (value, key) {
-          config[key] = value;
-        });
-
-        // Decorate/Overide config with inline attributes
-
-        angular.forEach(attrs.$attr, function (dashAttr) {
-          var attr = attrs.$normalize(dashAttr); // normalize = ToCamelCase()
-          applyConfig(attr, attrs[attr]);
-        });
-
-        function applyConfig (attr, value) {
-          switch (attr) {
-
-            // Booleans, Integers & Arrays
-
-            case "setDefaultDate":
-            case "bound":
-            case "reposition":
-            case "disableWeekends":
-            case "showWeekNumber":
-            case "isRTL":
-            case "showMonthAfterYear":
-            case "showMonthInTitle":
-            case "showOverrunDays":
-            case "firstDay":
-            case "yearRange":
-            case "numberOfMonths":
-            case "mainCalendar":
-
-              config[attr] = scope.$eval(value);
-              break;
-
-            // Functions
-
-            case "onSelect":
-            case "onOpen":
-            case "onClose":
-            case "onDraw":
-            case "disableDayFn":
-
-              config[attr] = function (date) {
-                setTimeout(function(){
-                  scope.$apply();
+                angular.forEach(pikadayConfig, function(value, key) {
+                    config[key] = value;
                 });
-                return scope[attr]({ pikaday: this, date: date });
-              };
-              break;
 
-            // Strings
+                function applyConfig(attr, value) {
+                    switch (attr) {
 
-            case "format":
-            case "position":
-            case "theme":
-            case "yearSuffix":
+                        // Booleans, Integers & Arrays
 
-              config[attr] = value;
-              break;
+                        case "setDefaultDate":
+                        case "bound":
+                        case "reposition":
+                        case "disableWeekends":
+                        case "showWeekNumber":
+                        case "isRTL":
+                        case "showMonthAfterYear":
+                        case "showMonthInTitle":
+                        case "showOverrunDays":
+                        case "firstDay":
+                        case "yearRange":
+                        case "numberOfMonths":
+                        case "mainCalendar":
 
-            // Dates
+                            config[attr] = scope.$eval(value);
+                            break;
 
-            case "minDate":
-            case "maxDate":
-            case "defaultDate":
+                            // Functions
 
-              config[attr] = new Date(value);
-              break;
+                        case "onSelect":
+                        case "onOpen":
+                        case "onClose":
+                        case "onDraw":
+                        case "disableDayFn":
 
-            // Elements
+                            config[attr] = function(date) {
+                                setTimeout(function() {
+                                    scope.$apply();
+                                });
+                                return scope[attr]({
+                                    pikaday: this,
+                                    date: date
+                                });
+                            };
+                            break;
 
-            case "trigger":
-            case "container":
+                            // Strings
 
-              config[attr] = document.getElementById(value);
-              break;
+                        case "format":
+                        case "position":
+                        case "theme":
+                        case "yearSuffix":
 
-            // Translations
+                            config[attr] = value;
+                            break;
 
-            case "i18n":
+                            // Dates
 
-              config[attr] = pikadayConfig.locales[value];
+                        case "minDate":
+                        case "maxDate":
+                        case "defaultDate":
 
-          }
-        }
+                            config[attr] = new Date(value);
+                            break;
 
-        // instantiate pikaday with config, bind to scope, add destroy event callback
+                            // Elements
 
-        var picker = new Pikaday(config);
-        scope.pikaday = picker;
-        scope.$on('$destroy', function () {
-          picker.destroy();
-        });
-      }
-    };
-  }
+                        case "trigger":
+                        case "container":
+
+                            config[attr] = document.getElementById(value);
+
+                            break;
+
+                            // Translations
+
+                        case "i18n":
+
+                            config[attr] = pikadayConfig.locales[value];
+
+                    }
+                }
+
+                function init() {
+
+                    if (picker) {
+                        picker.destroy();
+                        picker = null;
+                    }
+
+                    angular.forEach(attrs.$attr, function(dashAttr) {
+                        var attr = attrs.$normalize(dashAttr); // normalize = ToCamelCase()
+                        applyConfig(attr, attrs[attr]);
+                    });
+
+                    // instantiate pikaday with config, bind to scope, add destroy event callback
+
+                    picker = new Pikaday(config);
+
+                    scope.pikaday = picker;
+
+                    scope.$on('$destroy', function() {
+                        picker.destroy();
+                    });
+
+                }
+
+                // Decorate/Overide config with inline attributes
+                if (config.defer || attrs.defer) {
+
+                    var deferListener = scope.$on('pikaday::init', function (event, data) {
+
+                        if (data && data.id && attrs.id && data.id !== attrs.id) {
+                            return;
+                        }
+
+                        // init pikaday
+                        init();
+
+                        // remove watcher
+                        deferListener();
+
+                    });
+
+                } else {
+
+                    init();
+                }
+
+
+
+            }
+        };
+    }
 
 }));

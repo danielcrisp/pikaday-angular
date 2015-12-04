@@ -25,6 +25,7 @@ Any of Pikaday's options can be passed to the corresponding attribute, the direc
 <input pikaday="myPickerObject" number-of-months="2">
 ```
 
+
 ## Global config
 
 Optionally, you may provide a global config* object for all pickers by creating a `pikadayConfigProvider`.
@@ -38,6 +39,37 @@ angular.module('YourApp')
       numberOfMonths: 2
     });
   }])
+```
+
+## Defer
+
+You can also use the `defer` attribute or config option to postpone.
+
+If you use defer you must manually trigger the initialisation of pikaday by broadcast an event on the scope.
+
+This will init **all** pikaday element's in that scope.
+
+```HTML
+<input pikaday="myPickerObject" defer="true">
+```
+
+```javascript
+$scope.$broadcast('pikaday::init');
+```
+
+If you wish to target a particular element you can use an ID:
+
+```HTML
+I will be initialised:
+<input pikaday="myPickerObject1" defer="true" id="pikaday1">
+I won't be:
+<input pikaday="myPickerObject2" defer="true" id="pikaday2">
+```
+
+```javascript
+$scope.$broadcast('pikaday::init', {
+  id: 'pikaday1'
+});
 ```
 
 ## <a name="functions"></a>Functions
